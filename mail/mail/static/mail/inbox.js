@@ -17,6 +17,7 @@ function compose_email() {
 
   // Show compose view and hide other views.
   document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#email-contents').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
 
   // Clear out composition fields.
@@ -30,6 +31,7 @@ function load_mailbox(mailbox) {
   // Show the mailbox and hide other views.
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
+  document.querySelector('#email-contents').style.display = 'none';
 
   // Show the mailbox name.
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
@@ -67,9 +69,10 @@ function send() {
   });
 
   localStorage.clear();
-
-  // Show sent mailbox.
-  load_mailbox('sent');
+  // Back to inbox and display success message.
+  load_mailbox('inbox');
+  const success = document.createElement('div').innerHTML = "Email delivered!";
+  document.querySelector('#emails-view').append(success);
 
   // Prevents reloading of page.
   return false;
@@ -83,22 +86,23 @@ function get_email(email, mailbox) {
   // Email row.
   const emailDiv = document.createElement('div');
   emailDiv.className = "row";
-  emailDiv.style.padding = "20px";
+  emailDiv.style.padding = "10px";
   
   // To/from column placed inside email row.
   const ToFrom = document.createElement('div');
   ToFrom.className = "col-lg-3";
+  ToFrom.style.fontWeight = "bold";
   if (mailbox === 'inbox' || mailbox === 'archive') {
-    ToFrom.innerHTML = `From: ${email.sender}`;
+    ToFrom.innerHTML = email.sender;
   }
   else {
-    ToFrom.innerHTML = `To: ${email.recipients}`;
+    ToFrom.innerHTML = email.recipients;
   }
   emailDiv.append(ToFrom);
 
   // Subject column placed inside email row.
   const subject = document.createElement('div');
-  subject.className = "col-lg-5";
+  subject.className = "col-lg-6";
   subject.innerHTML = email.subject;
   emailDiv.append(subject);
 
@@ -109,20 +113,60 @@ function get_email(email, mailbox) {
   emailDiv.append(timestamp);
 
   // Archive column placed inside email row.
-  if (mailbox === 'inbox') {
-    const archive = document.createElement('div');
-    archive.className = "col-lg-1";
-    archive.innerHTML = "Archive";
-    archive.style.whiteSpace = "nowrap";
-    emailDiv.append(archive);
-  }
+  // if (mailbox === 'inbox') {
+  //   const archive = document.createElement('div');
+  //   archive.className = "col-lg-1";
+  //   archive.innerHTML = "Archive";
+  //   archive.style.whiteSpace = "nowrap";
+  //   emailDiv.append(archive);
+  // }
   
   // Add email row to card view.
   emailCard.append(emailDiv);
   document.querySelector('#emails-view').append(emailCard);
 
-  // Gray out read emails. 
-  if (email.read) {
-    emailCard.style.backgroundColor = "gray";
+  // When user clicks card, show contents.
+  emailCard.addEventListener('click', () => email_view(email));
+
+  // Gray out read emails (issue with boolean default so opposite logic instead). 
+  if (mailbox === 'inbox') {
+    if (!email.read) {
+      emailCard.style.backgroundColor = "#DCDCDC";
+    }
   }
+
+  
+}
+
+function email_view(email) {
+
+  // Show email contents and hide other views.
+  document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#compose-view').style.display = 'none';
+  document.querySelector('#email-contents').style.display = 'block';
+
+  fetch(`/emails/${email.id}`)
+  .then(response => response.json())
+  .then(email => {
+      // Print email
+      console.log(email);
+
+      email_read(email);
+
+      document.querySelector('#email-timestamp').innerHTML = `<b>Date</b>: ${email.timestamp}`;
+      document.querySelector('#email-sender').innerHTML = `<b>From</b>: ${email.sender}`;
+      document.querySelector('#email-recipients').innerHTML = `<b>To</b>: ${email.recipients}`;
+      document.querySelector('#email-subject').innerHTML = `<b>Subject</b>: ${email.subject}`;
+      document.querySelector('#email-body').innerHTML = email.body;
+  });
+}
+
+function email_read(email) {
+  fetch(`/emails/${email.id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      // (issue with boolean default so opposite logic instead).
+        read: false
+    })
+  })
 }
