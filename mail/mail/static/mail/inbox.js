@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
 
   // Use buttons to toggle between views.
   document.querySelector('#inbox').addEventListener('click', () => load_mailbox('inbox'));
@@ -27,7 +27,7 @@ function compose_email() {
 }
 
 function load_mailbox(mailbox) {
-  
+
   // Show the mailbox and hide other views.
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
@@ -38,14 +38,14 @@ function load_mailbox(mailbox) {
 
   // Load the appropriate mailbox.
   fetch(`/emails/${mailbox}`)
-  .then(response => response.json())
-  .then(emails => {
+    .then(response => response.json())
+    .then(emails => {
       // Print emails
       console.log(emails);
       emails.forEach(email => {
         get_email(email, mailbox);
       });
-  });
+    });
 }
 
 function send() {
@@ -57,25 +57,17 @@ function send() {
   fetch('/emails', {
     method: 'POST',
     body: JSON.stringify({
-        recipients: recipients,
-        subject: subject,
-        body: body
+      recipients: recipients,
+      subject: subject,
+      body: body
     })
   })
-  .then(response => response.json())
-  .then(result => {
+    .then(response => response.json())
+    .then(result => {
       // Print JSON results for each email to console.
       console.log(result);
-  });
+    });
 
-  localStorage.clear();
-  // Back to inbox and display success message.
-  load_mailbox('inbox');
-  const success = document.createElement('div').innerHTML = "Email delivered!";
-  document.querySelector('#emails-view').append(success);
-
-  // Prevents reloading of page.
-  return false;
 }
 
 function get_email(email, mailbox) {
@@ -87,7 +79,7 @@ function get_email(email, mailbox) {
   const emailDiv = document.createElement('div');
   emailDiv.className = "row";
   emailDiv.style.padding = "10px";
-  
+
   // To/from column placed inside email row.
   const ToFrom = document.createElement('div');
   ToFrom.className = "col-lg-3";
@@ -96,7 +88,7 @@ function get_email(email, mailbox) {
     ToFrom.innerHTML = email.sender;
   }
   else {
-    ToFrom.innerHTML = email.recipients;
+    ToFrom.innerHTML = `To: ${email.recipients}`;
   }
   emailDiv.append(ToFrom);
 
@@ -112,42 +104,47 @@ function get_email(email, mailbox) {
   timestamp.innerHTML = email.timestamp;
   emailDiv.append(timestamp);
 
-  // Archive column placed inside email row.
-  // if (mailbox === 'inbox') {
-  //   const archive = document.createElement('div');
-  //   archive.className = "col-lg-1";
-  //   archive.innerHTML = "Archive";
-  //   archive.style.whiteSpace = "nowrap";
-  //   emailDiv.append(archive);
-  // }
-  
   // Add email row to card view.
   emailCard.append(emailDiv);
   document.querySelector('#emails-view').append(emailCard);
 
   // When user clicks card, show contents.
-  emailCard.addEventListener('click', () => email_view(email));
+  emailCard.addEventListener('click', () => email_view(email, mailbox));
 
-  // Gray out read emails (issue with boolean default so opposite logic instead). 
-  if (mailbox === 'inbox') {
+  // Gray out read emails (issue with boolean default so opposite logic used instead). 
+  if (mailbox !== 'sent') {
     if (!email.read) {
       emailCard.style.backgroundColor = "#DCDCDC";
     }
   }
-
-  
 }
 
-function email_view(email) {
+function email_view(email, mailbox) {
 
   // Show email contents and hide other views.
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'none';
   document.querySelector('#email-contents').style.display = 'block';
 
+  if (mailbox === 'inbox') {
+    document.querySelector('#archive').style.display = 'block';
+    document.querySelector('#unarchive').style.display = 'none';
+  }
+  else if (mailbox === 'archive') {
+    document.querySelector('#unarchive').style.display = 'block';
+    document.querySelector('#archive').style.display = 'none';
+  }
+  else {
+    document.querySelector('#archive').style.display = 'none';
+    document.querySelector('#unarchive').style.display = 'none';
+  }
+
+  document.querySelector('#archive-button').addEventListener('click', () => archive(email));
+  document.querySelector('#unarchive-button').addEventListener('click', () => unarchive(email));
+
   fetch(`/emails/${email.id}`)
-  .then(response => response.json())
-  .then(email => {
+    .then(response => response.json())
+    .then(email => {
       // Print email
       console.log(email);
 
@@ -158,15 +155,36 @@ function email_view(email) {
       document.querySelector('#email-recipients').innerHTML = `<b>To</b>: ${email.recipients}`;
       document.querySelector('#email-subject').innerHTML = `<b>Subject</b>: ${email.subject}`;
       document.querySelector('#email-body').innerHTML = email.body;
-  });
+
+    });
 }
 
 function email_read(email) {
   fetch(`/emails/${email.id}`, {
     method: 'PUT',
     body: JSON.stringify({
-      // (issue with boolean default so opposite logic instead).
-        read: false
+      // (issue with boolean default so opposite logic used instead).
+      read: false
     })
   })
+}
+
+function archive(email) {
+  fetch(`/emails/${email.id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      archived: true
+    })
+  })
+  location.reload();
+}
+
+function unarchive(email) {
+  fetch(`/emails/${email.id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      archived: false
+    })
+  })
+  location.reload();
 }
