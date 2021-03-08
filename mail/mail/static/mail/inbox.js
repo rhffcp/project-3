@@ -111,9 +111,9 @@ function get_email(email, mailbox) {
   // When user clicks card, show contents.
   emailCard.addEventListener('click', () => email_view(email, mailbox));
 
-  // Gray out read emails (issue with boolean default so opposite logic used instead). 
+  // Gray out read emails. 
   if (mailbox !== 'sent') {
-    if (!email.read) {
+    if (email.read) {
       emailCard.style.backgroundColor = "#DCDCDC";
     }
   }
@@ -127,20 +127,24 @@ function email_view(email, mailbox) {
   document.querySelector('#email-contents').style.display = 'block';
 
   if (mailbox === 'inbox') {
-    document.querySelector('#archive').style.display = 'block';
-    document.querySelector('#unarchive').style.display = 'none';
+    document.querySelector('#archive-button').style.display = 'block';
+    document.querySelector('#reply-button').style.display = 'block';
+    document.querySelector('#unarchive-button').style.display = 'none';
   }
   else if (mailbox === 'archive') {
-    document.querySelector('#unarchive').style.display = 'block';
-    document.querySelector('#archive').style.display = 'none';
+    document.querySelector('#unarchive-button').style.display = 'block';
+    document.querySelector('#reply-button').style.display = 'block';
+    document.querySelector('#archive-button').style.display = 'none';
   }
   else {
-    document.querySelector('#archive').style.display = 'none';
-    document.querySelector('#unarchive').style.display = 'none';
+    document.querySelector('#archive-button').style.display = 'none';
+    document.querySelector('#unarchive-button').style.display = 'none';
+    document.querySelector('#reply-button').style.display = 'none';
   }
 
   document.querySelector('#archive-button').addEventListener('click', () => archive(email));
   document.querySelector('#unarchive-button').addEventListener('click', () => unarchive(email));
+  document.querySelector('#reply-button').addEventListener('click', () => reply(email));
 
   fetch(`/emails/${email.id}`)
     .then(response => response.json())
@@ -163,8 +167,7 @@ function email_read(email) {
   fetch(`/emails/${email.id}`, {
     method: 'PUT',
     body: JSON.stringify({
-      // (issue with boolean default so opposite logic used instead).
-      read: false
+      read: true
     })
   })
 }
@@ -187,4 +190,21 @@ function unarchive(email) {
     })
   })
   location.reload();
+}
+
+function reply(email) {
+
+  // Show compose view and hide other views.
+  document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#email-contents').style.display = 'none';
+  document.querySelector('#compose-view').style.display = 'block';
+
+  document.querySelector('#compose-recipients').value = email.sender;
+  if (email.subject.indexOf("Re: ") === -1) {
+    document.querySelector('#compose-subject').value = `Re: ${email.subject}`;
+  }
+  else {
+    document.querySelector('#compose-subject').value = email.subject;
+  }
+  document.querySelector('#compose-body').value = `${email.body}\n---------------------\n`;
 }
