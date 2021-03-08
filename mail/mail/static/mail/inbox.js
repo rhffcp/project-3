@@ -66,7 +66,8 @@ function send() {
     .then(result => {
       // Print JSON results for each email to console.
       console.log(result);
-    });
+    })
+
 
 }
 
@@ -206,5 +207,6 @@ function reply(email) {
   else {
     document.querySelector('#compose-subject').value = email.subject;
   }
-  document.querySelector('#compose-body').value = `${email.body}\n---------------------\n`;
+  document.querySelector('#compose-body').value =
+    `${email.body}\n---\nOn ${email.timestamp} <b>${email.recipients}</b> wrote:\n`;
 }
