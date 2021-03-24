@@ -87,8 +87,7 @@ function listEmail(email, mailbox) {
   toFrom.style.fontWeight = "bold";
   if (mailbox === 'inbox' || mailbox === 'archive') {
     toFrom.innerHTML = email.sender;
-  }
-  else {
+  } else {
     toFrom.innerHTML = `To: ${email.recipients}`;
   }
   emailDiv.append(toFrom);
@@ -229,8 +228,7 @@ function reply(email) {
   // Prefill subject value with "Re: ".
   if (email.subject.indexOf("Re: ") === -1) {
     document.querySelector('#compose-subject').value = `Re: ${email.subject}`;
-  }
-  else {
+  } else {
     document.querySelector('#compose-subject').value = email.subject;
   }
   // Prefill body value with date and composer email (from).
