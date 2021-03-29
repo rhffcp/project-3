@@ -28,9 +28,10 @@ $ python manage.py runserver
 Once the Django development server runs, visit the server's address to open the app.
 
 ### Admin
-To use the admin interface, you must create a superuser account by changing into the outer mail directory and running the following command from the terminal:
+To use the admin interface, you must create an admin account by changing into the outer mail directory and running the following command from the terminal:
 
 ```
 $ python manage.py createsuperuser
 ```
 
+Follow the steps to create your account. Next, run the server again and go to "/admin/" on your local domain and log in to the interface.
