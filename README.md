@@ -5,7 +5,7 @@
 ![Index Screenshot](screenshot_3.png)
 
 ## Description
-This project uses HTML, CSS, Django + Django models, and JavaScript to create an email client where users can send and recieve emails. It follows all the requirements of [CS50W's Mail](https://cs50.harvard.edu/web/2020/projects/3/mail/) project, plus additional customization.
+This project uses HTML, CSS, Django + Django models, and JavaScript to create an email client where users can send and recieve emails.
 
 - This app makes calls to a prewritten API (documented [here](https://cs50.harvard.edu/web/2020/projects/3/mail/)) to retrieve, send, and update emails.
 
